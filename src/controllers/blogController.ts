@@ -164,6 +164,11 @@ class BlogController {
             // @ts-ignore
             const index = req.files?.index[0].buffer;
 
+            // create temp folder if it doesn't exist
+            if (!fs.existsSync("temp")) {
+                fs.mkdirSync("temp");
+            }
+
             // create the folder if it doesn't exist
             if (!fs.existsSync(`temp/${post.id}`)) {
                 fs.mkdirSync(`temp/${post.id}`);
