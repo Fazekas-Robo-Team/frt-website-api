@@ -46,8 +46,10 @@ class AuthController {
             const cookieOptions = {
                 expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
                 secure: true,
+                sameSite: "none",
             };
             
+            // @ts-ignore
             res.cookie('token', token, cookieOptions);
             res.json({ success: true});
         } catch (error) {
