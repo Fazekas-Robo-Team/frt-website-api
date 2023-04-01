@@ -1,0 +1,4 @@
+runtime: nodejs18
+
+runtime_config:
+  operating_system: "ubuntu20"
