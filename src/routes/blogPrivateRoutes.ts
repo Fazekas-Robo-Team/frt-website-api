@@ -9,6 +9,7 @@ const temp_upload = multer({storage: multer.memoryStorage()});
 
 
 router.get("/", blogController.getPosts);
+router.post("/make_featured/:id", blogController.makeFeatured);
 router.post(
     "/",
     temp_upload.fields([

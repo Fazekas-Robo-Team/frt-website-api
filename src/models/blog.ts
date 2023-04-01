@@ -15,7 +15,7 @@ class Post extends Model {
     public slug!: string;
     public published!: boolean;
     public userId!: number;
-    public index!: boolean;
+    public featured!: boolean;
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
 }
@@ -64,7 +64,7 @@ Post.init(
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        index: {
+        featured: {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
             allowNull: false,

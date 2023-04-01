@@ -47,7 +47,7 @@ class BlogController {
                     let state = "draft";
                     if (post.published) {
                         state = "published";
-                        if (post.index) {
+                        if (post.featured) {
                             state = "published (featured)";
                         }
                     }
@@ -92,6 +92,7 @@ class BlogController {
                         author: user?.fullname,
                         date: date,
                         slug: post.slug,
+                        featured: post.featured,
                     };
                 })
             );
@@ -342,6 +343,28 @@ class BlogController {
         } catch (error) {
             logger.error(error);
             res.status(500).json({ success: false, message: "Failed to delete post :(" });
+        }
+    }
+
+    public async makeFeatured(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const post = await Post.findOne({ where: { id } });
+
+            if (post) {
+                // make all other posts not featured
+                await Post.update({ featured: false }, { where: { featured: true } });
+
+                post.featured = true;
+                await post.save();
+
+                res.status(200).json({ success: true });
+            } else {
+                res.status(404).json({ success: false, message: "Post not found :(" });
+            }
+        } catch (error) {
+            logger.error(error);
+            res.status(500).json({ success: false, message: "Failed to make post featured :(" });
         }
     }
 }
