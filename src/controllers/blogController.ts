@@ -352,6 +352,12 @@ class BlogController {
             const post = await Post.findOne({ where: { id } });
 
             if (post) {
+                // if the post is already featured, return
+                if (post.featured) {
+                    res.status(200).json({ success: true });
+                    return;
+                }
+
                 // make all other posts not featured
                 await Post.update({ featured: false }, { where: { featured: true } });
 
