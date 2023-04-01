@@ -9,9 +9,12 @@ import path from "path";
 import sharp from "sharp";
 const { Storage } = require("@google-cloud/storage");
 
+// get credentials from env GOOGLE_STORAGE_CREDENTIALS
+const GOOGLE_STORAGE_CREDENTIALS = process.env.GOOGLE_STORAGE_CREDENTIALS;
+
 const storage = new Storage({
-    keyFilename: path.join(__dirname, "..", "..", "cloud-storage-key.json"),
-    projectId: "frt-website-382316"
+    projectId: "frt-website-382316",
+    credentials: JSON.parse(GOOGLE_STORAGE_CREDENTIALS!),
 });
 const bucket = storage.bucket("frt-blog-images");
 
