@@ -7,6 +7,14 @@ import { buildFrontend } from "../app";
 import { logger } from "../app";
 import path from "path";
 import sharp from "sharp";
+const { Storage } = require("@google-cloud/storage");
+
+const storage = new Storage({
+    keyFilename: path.join(__dirname, "..", "..", "cloud-storage-key.json"),
+    projectId: "frt-website-382316"
+});
+const bucket = storage.bucket("frt-blog-images");
+
 dotenv.config();
 
 class BlogController {
@@ -164,17 +172,26 @@ class BlogController {
             // @ts-ignore
             const index = req.files?.index[0].buffer;
 
-            // create temp folder if it doesn't exist
-            if (!fs.existsSync("temp")) {
-                fs.mkdirSync("temp");
-            }
+            const webpImageBuffer = await sharp(index).resize(800, 600).webp().toBuffer();
 
-            // create the folder if it doesn't exist
-            if (!fs.existsSync(`temp/${post.id}`)) {
-                fs.mkdirSync(`temp/${post.id}`);
-            }
+            const webpFilePath = `${post.id}/index.webp`;
 
-            await sharp(index).resize(800, 600).webp().toFile(`temp/${post.id}/index.webp`);
+            const webpWriteStream = bucket.file(webpFilePath).createWriteStream({
+                metadata: {
+                    contentType: "image/webp",
+                    cacheControl: "public, max-age=31536000",
+                },
+            });
+
+            webpWriteStream.on("error", (err: any) => {
+                logger.error(err);
+            });
+
+            webpWriteStream.on("finish", () => {
+                logger.info(`Saved ${webpFilePath} to bucket`);
+            });
+
+            webpWriteStream.end(webpImageBuffer);
 
             // get buffer from req files with the name images[]
             // @ts-ignore
@@ -189,7 +206,26 @@ class BlogController {
                     const name = image_name.split(".")[0];
 
                     const image = images[i].buffer;
-                    await sharp(image).resize(1600, 1200).webp().toFile(`temp/${post.id}/${name}.webp`);
+                    const imgBuffer = await sharp(image).resize(1600, 1200).webp().toBuffer();
+
+                    const imgFilePath = `${post.id}/${name}.webp`;
+
+                    const imgFileStream = bucket.file(imgFilePath).createWriteStream({
+                        metadata: {
+                            contentType: "image/webp",
+                            cacheControl: "public, max-age=31536000",
+                        },
+                    });
+
+                    imgFileStream.on("error", (err: any) => {
+                        logger.error(err);
+                    });
+
+                    imgFileStream.on("finish", () => {
+                        logger.info(`Saved ${imgFilePath} to bucket`);
+                    });
+
+                    imgFileStream.end(imgBuffer);
                 }
             }
             
