@@ -247,22 +247,6 @@ class BlogController {
             if (post) {
                 const { title } = post;
 
-                // copy the temp/slug to the public/slug
-                const tempPath = path.join(__dirname, `../../temp/${id}`);
-
-                // create the public folder if it doesn't exist
-                fs.mkdirSync(path.join(__dirname, "../../public"), { recursive: true });
-                
-                // create the public/slug folder if it doesn't exist
-                fs.mkdirSync(path.join(__dirname, `../../public/${id}`), { recursive: true });
-
-                // copy every image from temp/slug to public/slug
-                fs.readdirSync(tempPath).forEach((file) => {
-                    fs.copyFile(tempPath + "/" + file, path.join(__dirname, `../../public/${id}/${file}`), (err) => {
-                        if (err) throw err;
-                    });
-                });
-
                 const user = await User.findOne({ where: { id: req.userId } });
 
                 post.published = true;
