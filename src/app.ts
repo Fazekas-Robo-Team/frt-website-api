@@ -82,9 +82,12 @@ app.use(
 )
 app.use(cookieParser()); 
 
+// get the allowed origins from the .env file
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
+
 app.use(cors(
     {
-        origin: "*",
+        origin: allowedOrigins,
         credentials: true,
     }
 ));
