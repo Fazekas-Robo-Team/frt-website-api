@@ -6,9 +6,19 @@ import jwt from 'jsonwebtoken';
 import sharp from 'sharp';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import { logger } from '../app';
 dotenv.config();
 
-const secret = process.env.JWT_SECRET!;
+const { Storage } = require("@google-cloud/storage");
+
+// get credentials from env GOOGLE_STORAGE_CREDENTIALS
+const GOOGLE_STORAGE_CREDENTIALS = process.env.GOOGLE_STORAGE_CREDENTIALS;
+
+const storage = new Storage({
+    projectId: "frt-website-382316",
+    credentials: JSON.parse(GOOGLE_STORAGE_CREDENTIALS!),
+});
+const bucket = storage.bucket("frt-blog-images");
 
 class UserController {
     public async getById(req: Request, res: Response): Promise<void> {
@@ -95,15 +105,28 @@ class UserController {
             // @ts-ignore
             const { buffer } = req.file;
 
-            const webpPath = `public/user/${id}/pfp.webp`;
-
-            // create the directory if it doesn't exist
-            if (!fs.existsSync(`public/user/${id}`)) {
-                fs.mkdirSync(`public/user/${id}`);
-            }
+            const webpPath = `users/${id}/pfp.webp`;
 
             // save the image as webp in resolution 512x512
-            await sharp(buffer).resize(512, 512).webp().toFile(webpPath);
+            const webpImageBuffer = await sharp(buffer).resize(512, 512).webp().toBuffer();
+
+            const webpWriteStream = bucket.file(webpPath).createWriteStream({
+                metadata: {
+                    contentType: 'image/webp',
+                    cacheControl: 'public, max-age=31536000',
+                },
+            });
+
+            webpWriteStream.on('error', (err: any) => {
+                logger.error(err);
+                res.status(500).json({ success: false, message: "Failed to update pfp :(" });
+            });
+
+            webpWriteStream.on('finish', async () => {
+                logger.info(`Uploaded ${webpPath} to bucket ${bucket.name}`);
+            });
+            
+            webpWriteStream.end(webpImageBuffer);                
 
             res.json({ success: true });
         } catch (error) {
