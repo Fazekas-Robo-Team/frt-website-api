@@ -186,14 +186,6 @@ class BlogController {
                 },
             });
 
-            webpWriteStream.on("error", (err: any) => {
-                logger.error(err);
-            });
-
-            webpWriteStream.on("finish", () => {
-                logger.info(`Saved ${webpFilePath} to bucket`);
-            });
-
             webpWriteStream.end(webpImageBuffer);
 
             // get buffer from req files with the name images[]
@@ -209,7 +201,7 @@ class BlogController {
                     const name = image_name.split(".")[0];
 
                     const image = images[i].buffer;
-                    const imgBuffer = await sharp(image).resize(1600, 1200).webp().toBuffer();
+                    const imgBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
 
                     const imgFilePath = `${post.id}/${name}.webp`;
 
@@ -218,14 +210,6 @@ class BlogController {
                             contentType: "image/webp",
                             cacheControl: "public, max-age=31536000",
                         },
-                    });
-
-                    imgFileStream.on("error", (err: any) => {
-                        logger.error(err);
-                    });
-
-                    imgFileStream.on("finish", () => {
-                        logger.info(`Saved ${imgFilePath} to bucket`);
                     });
 
                     imgFileStream.end(imgBuffer);
