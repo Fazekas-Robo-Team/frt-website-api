@@ -11,6 +11,7 @@ class User extends Model {
     public roles!: string[];
     public fullname!: string;
     public description!: string;
+    public pfpVersion!: number;
 }
 
 User.init(
@@ -45,6 +46,11 @@ User.init(
         description: {
             type: DataTypes.STRING,
             allowNull: true,
+        },
+        pfpVersion: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 0,
         },
     },
     {

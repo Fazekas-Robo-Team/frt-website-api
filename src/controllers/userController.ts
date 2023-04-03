@@ -75,7 +75,7 @@ class UserController {
     public async getAll(req: Request, res: Response): Promise<void> {
         try {
             // get only name, roles and description of the user
-            const users = await User.findAll({ attributes: ['id', 'username', 'fullname', 'description', 'roles'] });
+            const users = await User.findAll({ attributes: ['id', 'username', 'fullname', 'description', 'roles', 'pfpVersion'] });
 
             // sort them with this order: Coach, Senior Műhelytag, Műhelytag, Junior Műhelytag, Alumni
             users.sort((a, b) => {
@@ -105,7 +105,12 @@ class UserController {
             // @ts-ignore
             const { buffer } = req.file;
 
-            const webpPath = `users/${id}/pfp.webp`;
+            // get the name of the current pfp from database
+            const user = await User.findByPk(id);
+            const currentVersion = user!.pfpVersion;
+
+            const webpPath = `users/${id}/pfp_?v${currentVersion+1}.webp`;
+            const oldWebpPath = `users/${id}/pfp_?v${currentVersion}.webp`;
 
             // save the image as webp in resolution 512x512
             const webpImageBuffer = await sharp(buffer).resize(512, 512).webp().toBuffer();
@@ -117,16 +122,17 @@ class UserController {
                 },
             });
 
-            webpWriteStream.on('error', (err: any) => {
-                logger.error(err);
-                res.status(500).json({ success: false, message: "Failed to update pfp :(" });
-            });
+            // delete the old pfp
+            const oldPfp = await bucket.file(oldWebpPath);
 
-            webpWriteStream.on('finish', async () => {
-                logger.info(`Uploaded ${webpPath} to bucket ${bucket.name}`);
-            });
+            try {
+                await oldPfp.delete();
+            } catch (error) {}
             
-            webpWriteStream.end(webpImageBuffer);                
+            webpWriteStream.end(webpImageBuffer);       
+            
+            user!.pfpVersion++;
+            await user?.save();
 
             res.json({ success: true });
         } catch (error) {

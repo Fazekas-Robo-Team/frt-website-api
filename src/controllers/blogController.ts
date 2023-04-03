@@ -26,7 +26,6 @@ class BlogController {
         this.getPost = this.getPost.bind(this);
         this.createPost = this.createPost.bind(this);
         this.publishPost = this.publishPost.bind(this);
-        this.unpublishPost = this.unpublishPost.bind(this);
         this.deactivePost = this.deactivePost.bind(this);
         this.deletePost = this.deletePost.bind(this);
     }
@@ -187,14 +186,6 @@ class BlogController {
                 },
             });
 
-            webpWriteStream.on("error", (err: any) => {
-                logger.error(err);
-            });
-
-            webpWriteStream.on("finish", () => {
-                logger.info(`Saved ${webpFilePath} to bucket`);
-            });
-
             webpWriteStream.end(webpImageBuffer);
 
             // get buffer from req files with the name images[]
@@ -210,7 +201,7 @@ class BlogController {
                     const name = image_name.split(".")[0];
 
                     const image = images[i].buffer;
-                    const imgBuffer = await sharp(image).resize(1600, 1200).webp().toBuffer();
+                    const imgBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
 
                     const imgFilePath = `${post.id}/${name}.webp`;
 
@@ -219,14 +210,6 @@ class BlogController {
                             contentType: "image/webp",
                             cacheControl: "public, max-age=31536000",
                         },
-                    });
-
-                    imgFileStream.on("error", (err: any) => {
-                        logger.error(err);
-                    });
-
-                    imgFileStream.on("finish", () => {
-                        logger.info(`Saved ${imgFilePath} to bucket`);
                     });
 
                     imgFileStream.end(imgBuffer);
@@ -264,32 +247,26 @@ class BlogController {
         }
     }
 
-    public async unpublishPost(id: number, userId: number): Promise<void> {
+    public async deactivePost(req: Request, res: Response): Promise<void> {
         try {
+            const { id } = req.params;
+
             const post = await Post.findOne({ where: { id } });
 
             if (post) {
-                // delete the public/slug folder
-                const publicPath = path.join(__dirname, `../../public/${post.slug}`);
+                const { title } = post;
 
-                fs.rmdirSync(publicPath, { recursive: true });
+                const user = await User.findOne({ where: { id: req.userId } });
 
                 post.published = false;
                 await post.save();
 
-                const user = await User.findOne({ where: { id: userId } });
+                logger.info(`${user?.fullname} deactived post ${title}!`);
 
-                logger.info(`${user?.fullname} deactived post ${post.title}`);
+                res.status(200).json({ success: true });
+            } else {
+                res.status(404).json({ success: false, message: "Post not found :(" });
             }
-        } catch (error) {
-            logger.error(error);
-        }
-    }
-
-    public async deactivePost(req: Request, res: Response): Promise<void> {
-        try {
-            await this.unpublishPost(parseInt(req.params.id), req.userId!);
-            res.status(200).json({ success: true });
         } catch (error) {
             res.status(500).json({ success: false, message: "Failed to deactive post :(" });
         }
@@ -329,10 +306,6 @@ class BlogController {
             const post = await Post.findOne({ where: { id } });
 
             if (post) {
-                // delete the post from the frontend
-                if (post.published) {
-                    await this.unpublishPost(parseInt(req.params.id), req.userId!);
-                }
                 // delete the post from the database
                 await post.destroy();
 
