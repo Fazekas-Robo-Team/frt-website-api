@@ -79,14 +79,12 @@ class UserController {
 
             // sort them with this order: Coach, Senior Műhelytag, Műhelytag, Junior Műhelytag, Alumni
             users.sort((a, b) => {
-                if (a.roles.includes('Coach')) return -1;
-                if (b.roles.includes('Coach')) return 1;
+                if (a.roles.includes('Szakkörvezető')) return -1;
+                if (b.roles.includes('Szakkörvezető')) return 1;
                 if (a.roles.includes('Senior Műhelytag')) return -1;
                 if (b.roles.includes('Senior Műhelytag')) return 1;
                 if (a.roles.includes('Műhelytag')) return -1;
                 if (b.roles.includes('Műhelytag')) return 1;
-                if (a.roles.includes('Junior Műhelytag')) return -1;
-                if (b.roles.includes('Junior Műhelytag')) return 1;
                 if (a.roles.includes('Alumni')) return -1;
                 if (b.roles.includes('Alumni')) return 1;
                 return 0;
