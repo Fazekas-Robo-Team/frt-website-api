@@ -403,6 +403,42 @@ class BlogController {
             res.status(500).json({ success: false, message: "Failed to make post featured :(" });
         }
     }
+
+    public async uploadImage(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+
+            const post = await Post.findOne({ where: { id } });
+        
+            if (post) {
+                // @ts-ignore
+                const image = req.file?.buffer;
+
+                const webpImageBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
+
+                // get filename without extension
+                // @ts-ignore
+                const name = req.file?.originalname.split(".")[0];
+
+                const webpFilePath = `${post.id}/${name}.webp`;
+
+                const webpWriteStream = bucket.file(webpFilePath).createWriteStream({
+                    metadata: {
+                        contentType: "image/webp",
+                    },
+                });
+
+                webpWriteStream.end(webpImageBuffer);
+
+                res.status(200).json({ success: true, filename: webpFilePath });
+            } else {
+                res.status(404).json({ success: false, message: "Post not found :(" });
+            }
+        } catch (error) {
+            logger.error(error);
+            res.status(500).json({ success: false, message: "Failed to upload image :(" });
+        }
+    }
 }
 
 export default new BlogController();

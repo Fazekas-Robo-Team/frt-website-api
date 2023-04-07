@@ -40,6 +40,7 @@ router.put(
 );
 router.post("/publish/:id", blogController.publishPost);
 router.post("/deactivate/:id", blogController.deactivePost);
+router.post("/upload_image/:id", temp_upload.single("image"), blogController.uploadImage);
 router.delete("/:id", blogController.deletePost);
 
 export default router;
