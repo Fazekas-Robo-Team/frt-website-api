@@ -139,7 +139,7 @@ class BlogController {
                 category: category,
                 userId: req.userId,
             });
-
+            /*
             // find the image tags in the markdown content and replace the names with .webp extension
             // the format of the image tag is ![alt](img name)
             const regex = /!\[.*\]\(.*\)/g;
@@ -169,7 +169,7 @@ class BlogController {
 
             post.content = new_content;
 
-            await post.save();
+            await post.save();*/
 
             // get buffer from req files with the name index
             // @ts-ignore
@@ -284,7 +284,7 @@ class BlogController {
 
             if (post) {
                 post.description = description;
-
+                /*
                 // find the image tags in the markdown content and replace the names with .webp extension
                 // the format of the image tag is ![alt](img name)
                 const regex = /!\[.*\]\(.*\)/g;
@@ -292,6 +292,7 @@ class BlogController {
 
                 let new_content = content;
 
+                
                 // if there are image tags, replace the names with .webp extension
                 if (image_tags) {
                     let replace_content = new_content;
@@ -310,9 +311,9 @@ class BlogController {
 
                     // replace the content with the new content
                     new_content = replace_content;
-                }
+                }*/
 
-                post.content = new_content;
+                post.content = content;
                 
                 // if the user uploaded a new image, save it
                 // get buffer from req files with the name images[]
@@ -401,6 +402,42 @@ class BlogController {
         } catch (error) {
             logger.error(error);
             res.status(500).json({ success: false, message: "Failed to make post featured :(" });
+        }
+    }
+
+    public async uploadImage(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+
+            const post = await Post.findOne({ where: { id } });
+        
+            if (post) {
+                // @ts-ignore
+                const image = req.file?.buffer;
+
+                const webpImageBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
+
+                // get filename without extension
+                // @ts-ignore
+                const name = req.file?.originalname.split(".")[0];
+
+                const webpFilePath = `${post.id}/${name}.webp`;
+
+                const webpWriteStream = bucket.file(webpFilePath).createWriteStream({
+                    metadata: {
+                        contentType: "image/webp",
+                    },
+                });
+
+                webpWriteStream.end(webpImageBuffer);
+
+                res.status(200).json({ success: true, filename: webpFilePath });
+            } else {
+                res.status(404).json({ success: false, message: "Post not found :(" });
+            }
+        } catch (error) {
+            logger.error(error);
+            res.status(500).json({ success: false, message: "Failed to upload image :(" });
         }
     }
 }
