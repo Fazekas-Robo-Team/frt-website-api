@@ -139,43 +139,12 @@ class BlogController {
                 category: category,
                 userId: req.userId,
             });
-            /*
-            // find the image tags in the markdown content and replace the names with .webp extension
-            // the format of the image tag is ![alt](img name)
-            const regex = /!\[.*\]\(.*\)/g;
-            const image_tags = content.match(regex);
-
-            let new_content = content;
-
-            // if there are image tags, replace the names with .webp extension
-            if (image_tags) {
-                let replace_content = new_content;
-                for (let i = 0; i < image_tags.length; i++) {
-                    const tag = image_tags[i];
-
-                    // get the name of the image without the extension
-                    const name = tag.match(/\(.*\)/g)?.[0].slice(1, -1).split(".")[0];
-
-                    // replace the img with {post id}/{original name}.webp
-
-                    const new_tag = tag.replace(/\(.*\)/g, `(${post.id}/${name}.webp)`);
-
-                    replace_content = replace_content.replace(tag, new_tag);
-                }
-
-                // replace the content with the new content
-                new_content = replace_content;
-            }
-
-            post.content = new_content;
-
-            await post.save();*/
 
             // get buffer from req files with the name index
             // @ts-ignore
             const index = req.files?.index[0].buffer;
 
-            const webpImageBuffer = await sharp(index).resize(800, 600).webp().toBuffer();
+            const webpImageBuffer = await sharp(index).resize({width: 800, fit: "contain"}).webp().toBuffer();
 
             const webpFilePath = `${post.id}/index.webp`;
 
@@ -201,7 +170,7 @@ class BlogController {
                     const name = image_name.split(".")[0];
 
                     const image = images[i].buffer;
-                    const imgBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
+                    const imgBuffer = await sharp(image).resize({width: 800, fit: "contain"}).webp().toBuffer();
 
                     const imgFilePath = `${post.id}/${name}.webp`;
 
@@ -284,34 +253,6 @@ class BlogController {
 
             if (post) {
                 post.description = description;
-                /*
-                // find the image tags in the markdown content and replace the names with .webp extension
-                // the format of the image tag is ![alt](img name)
-                const regex = /!\[.*\]\(.*\)/g;
-                const image_tags = content.match(regex);
-
-                let new_content = content;
-
-                
-                // if there are image tags, replace the names with .webp extension
-                if (image_tags) {
-                    let replace_content = new_content;
-                    for (let i = 0; i < image_tags.length; i++) {
-                        const tag = image_tags[i];
-
-                        // get the name of the image without the extension
-                        const name = tag.match(/\(.*\)/g)?.[0].slice(1, -1).split(".")[0];
-
-                        // replace the img with {post id}/{original name}.webp
-
-                        const new_tag = tag.replace(/\(.*\)/g, `(${post.id}/${name}.webp)`);
-
-                        replace_content = replace_content.replace(tag, new_tag);
-                    }
-
-                    // replace the content with the new content
-                    new_content = replace_content;
-                }*/
 
                 post.content = content;
                 
@@ -329,7 +270,7 @@ class BlogController {
                         const name = image_name.split(".")[0];
 
                         const image = images[i].buffer;
-                        const imgBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
+                        const imgBuffer = await sharp(image).resize({width: 800, fit: "contain"}).webp().toBuffer();
 
                         const imgFilePath = `${post.id}/${name}.webp`;
 
@@ -415,7 +356,7 @@ class BlogController {
                 // @ts-ignore
                 const image = req.file?.buffer;
 
-                const webpImageBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
+                const webpImageBuffer = await sharp(image).resize({width: 800, fit: "contain"}).webp().toBuffer();
 
                 // get filename without extension
                 // @ts-ignore
