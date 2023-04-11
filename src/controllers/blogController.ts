@@ -144,7 +144,7 @@ class BlogController {
             // @ts-ignore
             const index = req.files?.index[0].buffer;
 
-            const webpImageBuffer = await sharp(index).resize(800, 600).webp().toBuffer();
+            const webpImageBuffer = await sharp(index).resize({width: 800, fit: "contain"}).webp().toBuffer();
 
             const webpFilePath = `${post.id}/index.webp`;
 
@@ -170,7 +170,7 @@ class BlogController {
                     const name = image_name.split(".")[0];
 
                     const image = images[i].buffer;
-                    const imgBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
+                    const imgBuffer = await sharp(image).resize({width: 800, fit: "contain"}).webp().toBuffer();
 
                     const imgFilePath = `${post.id}/${name}.webp`;
 
@@ -270,7 +270,7 @@ class BlogController {
                         const name = image_name.split(".")[0];
 
                         const image = images[i].buffer;
-                        const imgBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
+                        const imgBuffer = await sharp(image).resize({width: 800, fit: "contain"}).webp().toBuffer();
 
                         const imgFilePath = `${post.id}/${name}.webp`;
 
@@ -356,7 +356,7 @@ class BlogController {
                 // @ts-ignore
                 const image = req.file?.buffer;
 
-                const webpImageBuffer = await sharp(image).resize(800, 600).webp().toBuffer();
+                const webpImageBuffer = await sharp(image).resize({width: 800, fit: "contain"}).webp().toBuffer();
 
                 // get filename without extension
                 // @ts-ignore
